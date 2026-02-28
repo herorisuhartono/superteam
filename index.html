@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ukraine — Dark Modern</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;700;900&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #0057B7;
+    --yellow: #FFD700;
+    --yellow-glow: rgba(255, 215, 0, 0.18);
+    --blue-glow: rgba(0, 87, 183, 0.22);
+    --dark: #050810;
+    --mid: #0a1020;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--dark);
+    overflow: hidden;
+    cursor: none;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  /* ── CANVAS ── */
+  #bg { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── GRAIN OVERLAY ── */
+  .grain {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    opacity: .045;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    animation: grainShift 0.4s steps(1) infinite;
+  }
+  @keyframes grainShift {
+    0%   { background-position: 0 0; }
+    25%  { background-position: -50px 20px; }
+    50%  { background-position: 30px -40px; }
+    75%  { background-position: -70px 60px; }
+    100% { background-position: 40px -20px; }
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor-dot {
+    position: fixed; z-index: 9999; pointer-events: none;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--yellow);
+    transform: translate(-50%, -50%);
+    transition: transform 0.08s ease, opacity 0.2s;
+    box-shadow: 0 0 14px var(--yellow), 0 0 28px var(--yellow);
+  }
+  .cursor-ring {
+    position: fixed; z-index: 9998; pointer-events: none;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1.5px solid rgba(255, 215, 0, 0.5);
+    transform: translate(-50%, -50%);
+    transition: transform 0.18s cubic-bezier(0.23, 1, 0.32, 1), width 0.3s, height 0.3s, border-color 0.3s;
+  }
+
+  /* ── CONTENT ── */
+  .content {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+
+  .badge {
+    font-family: 'Manrope', sans-serif;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    color: rgba(255,215,0,0.7);
+    margin-bottom: 28px;
+    opacity: 0; animation: fadeUp 1s 0.4s forwards;
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(3.5rem, 10vw, 9rem);
+    font-weight: 900;
+    line-height: 0.92;
+    text-align: center;
+    letter-spacing: -0.03em;
+    opacity: 0; animation: fadeUp 1s 0.7s forwards;
+  }
+  h1 .line-sky {
+    display: block;
+    color: #fff;
+    text-shadow: 0 0 80px rgba(0,87,183,0.6);
+  }
+  h1 .line-land {
+    display: block;
+    color: var(--yellow);
+    text-shadow: 0 0 80px rgba(255,215,0,0.5);
+  }
+
+  .sub {
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+    font-weight: 300;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.04em;
+    margin-top: 32px;
+    text-align: center;
+    max-width: 420px;
+    opacity: 0; animation: fadeUp 1s 1s forwards;
+  }
+
+  .cta-row {
+    margin-top: 52px;
+    display: flex; gap: 18px;
+    opacity: 0; animation: fadeUp 1s 1.3s forwards;
+    pointer-events: all;
+  }
+  .btn {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 15px 36px;
+    border-radius: 2px;
+    cursor: none;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary {
+    background: var(--yellow);
+    color: #050810;
+    box-shadow: 0 0 40px rgba(255,215,0,0.25);
+  }
+  .btn-primary:hover { box-shadow: 0 0 60px rgba(255,215,0,0.5); }
+  .btn-ghost {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* corner accents */
+  .corner {
+    position: fixed; z-index: 5; pointer-events: none;
+    width: 80px; height: 80px;
+    opacity: 0.35;
+  }
+  .corner::before, .corner::after {
+    content: ''; position: absolute; background: var(--yellow);
+  }
+  .corner.tl { top: 32px; left: 32px; }
+  .corner.tl::before { width: 100%; height: 1.5px; top: 0; left: 0; }
+  .corner.tl::after  { width: 1.5px; height: 100%; top: 0; left: 0; }
+  .corner.br { bottom: 32px; right: 32px; }
+  .corner.br::before { width: 100%; height: 1.5px; bottom: 0; right: 0; }
+  .corner.br::after  { width: 1.5px; height: 100%; bottom: 0; right: 0; }
+
+  /* scanlines */
+  .scanlines {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.06) 3px,
+      rgba(0,0,0,0.06) 4px
+    );
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* scroll hint */
+  .scroll-hint {
+    position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%);
+    z-index: 10; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0; animation: fadeUp 1s 1.8s forwards;
+  }
+  .scroll-hint span {
+    font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: rgba(255,255,255,0.3); font-family: 'Manrope', sans-serif;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, rgba(255,215,0,0.6), transparent);
+    animation: scrollPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { transform: scaleY(1); opacity: 0.6; }
+    50% { transform: scaleY(0.6); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="grain"></div>
+<div class="scanlines"></div>
+<div class="corner tl"></div>
+<div class="corner br"></div>
+
+<div class="cursor-dot" id="dot"></div>
+<div class="cursor-ring" id="ring"></div>
+
+
+
+<div class="scroll-hint">
+  <div class="scroll-line"></div>
+  <span>Scroll</span>
+</div>
+
+<script>
+// ── CANVAS BACKGROUND ──
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], stars = [], mouseX = -9999, mouseY = -9999;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  initStars();
+}
+
+// Static star field
+function initStars() {
+  stars = [];
+  for (let i = 0; i < 280; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      speed: Math.random() * 0.004 + 0.001,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+// Particles — blue/yellow orbs
+function spawnParticle(x, y, fromMouse = false) {
+  const isGold = Math.random() > 0.5;
+  particles.push({
+    x, y,
+    vx: (Math.random() - 0.5) * (fromMouse ? 3 : 0.8),
+    vy: (Math.random() - 0.5) * (fromMouse ? 3 : 0.8) - (fromMouse ? 0 : 0.3),
+    r: Math.random() * (fromMouse ? 4 : 3) + 1,
+    life: 1,
+    decay: Math.random() * 0.012 + (fromMouse ? 0.016 : 0.006),
+    color: isGold ? [255, 215, 0] : [0, 120, 255],
+    glow: isGold ? 'rgba(255,215,0,' : 'rgba(0,120,255,',
+  });
+}
+
+// Background gradient — horizon split
+function drawBackground(t) {
+  // deep space
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0, 0, W, H);
+
+  // subtle horizon glow split — sky:blue / land:yellow
+  const split = H * 0.5 + Math.sin(t * 0.0003) * 30;
+
+  // sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, split);
+  skyGrad.addColorStop(0, 'rgba(0,20,60,0)');
+  skyGrad.addColorStop(1, 'rgba(0,57,183,0.12)');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, split);
+
+  // land gradient
+  const landGrad = ctx.createLinearGradient(0, split, 0, H);
+  landGrad.addColorStop(0, 'rgba(180,120,0,0.1)');
+  landGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = landGrad;
+  ctx.fillRect(0, split, W, H - split);
+
+  // horizon line
+  const hGrad = ctx.createLinearGradient(0, 0, W, 0);
+  hGrad.addColorStop(0, 'transparent');
+  hGrad.addColorStop(0.3, 'rgba(255,215,0,0.15)');
+  hGrad.addColorStop(0.5, 'rgba(255,215,0,0.3)');
+  hGrad.addColorStop(0.7, 'rgba(0,87,183,0.15)');
+  hGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = hGrad;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, split); ctx.lineTo(W, split);
+  ctx.stroke();
+
+  // mouse radial glow
+  if (mouseX > 0) {
+    const mouseGrad = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 280);
+    mouseGrad.addColorStop(0, 'rgba(255,215,0,0.06)');
+    mouseGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = mouseGrad;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+function drawStars(t) {
+  for (const s of stars) {
+    const a = 0.3 + 0.5 * Math.sin(t * s.speed + s.phase);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fill();
+  }
+}
+
+// Geometric grid lines
+function drawGrid(t) {
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  ctx.strokeStyle = '#FFD700';
+  ctx.lineWidth = 1;
+  const spacing = 80;
+  const offset = (t * 0.012) % spacing;
+  for (let x = -spacing + offset; x < W + spacing; x += spacing) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = -spacing + offset; y < H + spacing; y += spacing) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Floating diamond accents
+const diamonds = Array.from({ length: 12 }, (_, i) => ({
+  x: Math.random() * W,
+  y: Math.random() * H,
+  size: Math.random() * 6 + 2,
+  speed: Math.random() * 0.3 + 0.1,
+  phase: Math.random() * Math.PI * 2,
+  color: i % 2 === 0 ? '#FFD700' : '#0057B7',
+}));
+
+function drawDiamonds(t) {
+  for (const d of diamonds) {
+    d.y -= d.speed * 0.4;
+    if (d.y < -20) { d.y = H + 20; d.x = Math.random() * W; }
+    const pulse = 0.4 + 0.35 * Math.sin(t * 0.001 + d.phase);
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.translate(d.x, d.y);
+    ctx.rotate(Math.PI / 4 + t * 0.0005);
+    ctx.strokeStyle = d.color;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-d.size / 2, -d.size / 2, d.size, d.size);
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    const [r, g, b] = p.color;
+    // glow
+    const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+    grd.addColorStop(0, `rgba(${r},${g},${b},${p.life * 0.5})`);
+    grd.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+    ctx.fillStyle = grd; ctx.fill();
+    // core
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${p.life})`; ctx.fill();
+  }
+}
+
+// Ambient particle spawner
+let lastSpawn = 0;
+function tick(t) {
+  if (t - lastSpawn > 200) {
+    spawnParticle(Math.random() * W, Math.random() * H);
+    lastSpawn = t;
+  }
+
+  drawBackground(t);
+  drawGrid(t);
+  drawStars(t);
+  drawDiamonds(t);
+  drawParticles();
+  requestAnimationFrame(tick);
+}
+
+resize();
+window.addEventListener('resize', resize);
+requestAnimationFrame(tick);
+
+// ── MOUSE ──
+const dot = document.getElementById('dot');
+const ring = document.getElementById('ring');
+let ry = 0, rx = 0;
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  dot.style.left = mouseX + 'px';
+  dot.style.top  = mouseY + 'px';
+  ring.style.left = mouseX + 'px';
+  ring.style.top  = mouseY + 'px';
+  // spawn particles on move
+  if (Math.random() > 0.7) spawnParticle(mouseX, mouseY, true);
+});
+
+document.addEventListener('mousedown', () => {
+  dot.style.transform = 'translate(-50%,-50%) scale(1.8)';
+  ring.style.width = '60px'; ring.style.height = '60px';
+  ring.style.borderColor = 'rgba(255,215,0,0.9)';
+  for (let i = 0; i < 12; i++) spawnParticle(mouseX, mouseY, true);
+});
+document.addEventListener('mouseup', () => {
+  dot.style.transform = 'translate(-50%,-50%) scale(1)';
+  ring.style.width = '38px'; ring.style.height = '38px';
+  ring.style.borderColor = 'rgba(255,215,0,0.5)';
+});
+
+// hover on btns
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('mouseenter', () => {
+    ring.style.width = '54px'; ring.style.height = '54px';
+    ring.style.borderColor = 'rgba(255,215,0,0.8)';
+  });
+  btn.addEventListener('mouseleave', () => {
+    ring.style.width = '38px'; ring.style.height = '38px';
+    ring.style.borderColor = 'rgba(255,215,0,0.5)';
+  });
+});
+</script>
+</body>
+</html>
